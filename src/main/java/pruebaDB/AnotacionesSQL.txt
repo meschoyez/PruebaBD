@@ -1,0 +1,93 @@
+## Comandos simples
+
+show databases;
+use ${db};
+show tables;
+show columns in ${table};
+
+
+## Como administrador
+# Creo la BD y autorizo al usuario para que la gestione
+
+create database horariosclases;
+
+grant ALL on horariosclases.* to 'meschoyez'@'localhost' ;
+
+## Como usuario
+# Creo las Tablas y puedo insertar, modificar y borrar datos
+
+use horariosclases;
+
+# Primero creo las entidades independientes
+
+CREATE TABLE personas (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(40) NOT NULL,
+    apellido VARCHAR(40) NOT NULL,
+    cuil VARCHAR(11),
+    telefono VARCHAR(14)
+);
+
+CREATE TABLE clases (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(40) NOT NULL,
+    hora_inicio VARCHAR(5),
+    hora_fin VARCHAR(5)
+);
+
+# Luego creo las entidades que realizan las vinculaciones
+
+create table profesor (
+    clase INT NOT NULL,
+    profesor INT NOT NULL,
+    PRIMARY KEY(clase, profesor),
+    FOREIGN KEY (clase) REFERENCES horariosclases.clases (id),
+    FOREIGN KEY (profesor) REFERENCES horariosclases.personas (id)
+);
+
+CREATE TABLE estudiante (
+    clase INT NOT NULL,
+    id INT NOT NULL,
+    PRIMARY KEY(clase, id),
+    FOREIGN KEY (clase) REFERENCES horariosclases.clases (id),
+    FOREIGN KEY (id) REFERENCES horariosclases.personas (id)
+);
+
+##
+# Cargando datos en Tablas
+
+# Primero datos simples
+
+INSERT INTO clases (nombre, hora_inicio, hora_fin)
+    VALUES ('111mil', '9:00', '12:00');
+
+
+INSERT INTO clases
+    SET nombre = 'Java',  hora_inicio = '14:00', hora_fin = '17:00';
+
+# Varias filas a la vez (Cuidado con los campos con AUTO_INCREMENT)
+
+INSERT INTO personas VALUES
+    (1, 'Maximiliano', 'E', '20000000009', '3516'),
+    (2, 'Nicolas', 'S', '20000000007', '3515'),
+    (3, 'Lucrecia', 'A', '27000000005', '3512'),
+    (4, 'Georgina', 'T', '27000000009', '3513')
+    ;
+
+# Vinculando datos entre tablas 
+
+INSERT INTO profesor SET
+    clase = (SELECT id FROM clases WHERE nombre LIKE '111mil'),
+    profesor = (SELECT id FROM personas WHERE nombre LIKE 'Max%')
+    ;
+
+INSERT INTO estudiante (clase, id)
+    SELECT (SELECT id FROM clases WHERE nombre LIKE '111mil'), id
+    FROM personas WHERE id > 1
+    ;
+
+# Se puede borrar uno o mas registros
+
+DELETE FROM estudiante WHERE id = 4 ;
+
+DELETE FROM estudiante WHERE clase = 1 ;
